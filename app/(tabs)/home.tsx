@@ -217,14 +217,13 @@ export default function HomeScreen() {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const uid = userId;
       if (!userId) {
         setLoading(false);
         return;
       }
 
       try {
-        const plan = await getDailyPlan(uid, today);
+        const plan = await getDailyPlan(userId, today);
         if (plan) {
           setCompleted(plan.completed);
           setMeals(plan.meals ?? []);
@@ -239,7 +238,7 @@ export default function HomeScreen() {
         }
 
         // Load last weight
-        const records = await getWeightRecords(uid, 1);
+        const records = await getWeightRecords(userId, 1);
         if (records.length > 0) {
           setLastWeight(records[0].weight);
         }
@@ -259,9 +258,8 @@ export default function HomeScreen() {
 
   // Subscribe to real-time updates
   useEffect(() => {
-    const uid = userId;
     if (!userId) return;
-    const unsubscribe = subscribeDailyPlan(uid, today, (plan) => {
+    const unsubscribe = subscribeDailyPlan(userId, today, (plan) => {
       if (plan) {
         setCompleted(plan.completed);
         setMeals(plan.meals ?? []);
@@ -280,13 +278,12 @@ export default function HomeScreen() {
 
   const toggleMeal = useCallback(
     async (type: MealType) => {
-      const uid = userId;
       if (!userId) return;
       const newCompleted = { ...completed, [type]: !completed[type] };
       setCompleted(newCompleted);
       try {
-        const plan = await getDailyPlan(uid, today);
-        await saveDailyPlan(uid, {
+        const plan = await getDailyPlan(userId, today);
+        await saveDailyPlan(userId, {
           id: today,
           date: today,
           meals: plan?.meals ?? [],
@@ -304,14 +301,13 @@ export default function HomeScreen() {
   );
 
   const toggleExercise = useCallback(async () => {
-    const uid = userId;
     if (!userId) return;
     const newCompleted = { ...completed, exercises: !completed.exercises };
     setCompleted(newCompleted);
     completeExercises();
     try {
-      const plan = await getDailyPlan(uid, today);
-      await saveDailyPlan(uid, {
+      const plan = await getDailyPlan(userId, today);
+      await saveDailyPlan(userId, {
         id: today,
         date: today,
         meals: plan?.meals ?? [],
@@ -327,7 +323,6 @@ export default function HomeScreen() {
   }, [completed, today, totalConsumed, completeExercises]);
 
   const handleWeightSubmit = async () => {
-    const uid = userId;
     if (!userId) return;
     const w = parseFloat(weightInput);
     if (isNaN(w) || w <= 0) {
@@ -335,7 +330,7 @@ export default function HomeScreen() {
       return;
     }
     try {
-      await saveWeightRecord(uid, { date: today, weight: w });
+      await saveWeightRecord(userId, { date: today, weight: w });
       setLastWeight(w);
       setWeightModalVisible(false);
       setWeightInput('');
