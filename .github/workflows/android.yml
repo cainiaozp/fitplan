@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       profile:
-        description: 'Build profile'
+        description: "Build profile"
         required: true
-        default: 'preview'
+        default: "preview"
         type: choice
         options:
           - preview
