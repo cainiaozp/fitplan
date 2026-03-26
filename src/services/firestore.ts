@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { UserProfile, DailyPlan, Meal, WeightRecord } from '../models';
 
 const key = (uid: string, ...parts: string[]) =>
-  \`@fitplan:\${uid}:\${parts.join(':')}\`;
+  `@fitplan:${uid}:${parts.join(':')}`;
 
 const jsonGet = async <T>(k: string): Promise<T | null> => {
   const v = await AsyncStorage.getItem(k);
@@ -21,6 +21,7 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
   return jsonGet<UserProfile>(key(uid, 'profile'));
 };
 
+// subscribeUserProfile: reads once, no real-time for local storage
 export const subscribeUserProfile = (
   uid: string,
   callback: (profile: UserProfile | null) => void
