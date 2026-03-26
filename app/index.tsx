@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { registerWithEmail, loginWithEmail } from '../src/services/auth';
+import { generateLocalUserId, setLocalUserId } from '../src/services/auth';
 import { saveUserProfile } from '../src/services/firestore';
 import { useUserStore } from '../src/store/useUserStore';
 import { calculateBMR, calculateTDEE, calculateDailyTarget } from '../src/utils/calorie';
@@ -32,14 +32,9 @@ const GENDER_OPTIONS: { label: string; value: Gender }[] = [
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { setProfile } = useUserStore();
+  const { setUserId, setProfile } = useUserStore();
 
-  const [isLogin, setIsLogin] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // Auth fields
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
 
   // Profile fields
   const [height, setHeight] = useState('');
@@ -53,7 +48,6 @@ export default function OnboardingScreen() {
   // Computed calorie target
   const [dailyTarget, setDailyTarget] = useState<number | null>(null);
 
-  // Recalculate whenever relevant fields change
   useEffect(() => {
     const h = parseFloat(height);
     const w = parseFloat(weight);
@@ -69,10 +63,6 @@ export default function OnboardingScreen() {
   }, [height, weight, age, gender, activityLevel]);
 
   const validateForm = () => {
-    if (!email || !password) {
-      Alert.alert('错误', '请填写邮箱和密码');
-      return false;
-    }
     if (!height || parseFloat(height) <= 0) {
       Alert.alert('错误', '请输入有效身高');
       return false;
@@ -101,14 +91,6 @@ export default function OnboardingScreen() {
 
     setLoading(true);
     try {
-      let userCredential;
-      if (isLogin) {
-        userCredential = await loginWithEmail(email, password);
-      } else {
-        userCredential = await registerWithEmail(email, password);
-      }
-
-      const user = userCredential.user;
       const h = parseFloat(height);
       const w = parseFloat(weight);
       const a = parseInt(age, 10);
@@ -118,6 +100,10 @@ export default function OnboardingScreen() {
       const bmr = calculateBMR(w, h, a, gender);
       const tdee = calculateTDEE(bmr, activityLevel);
       const dct = calculateDailyTarget(tdee);
+
+      // Generate local user ID
+      const userId = generateLocalUserId();
+      await setLocalUserId(userId);
 
       const profile = {
         height: h,
@@ -132,14 +118,14 @@ export default function OnboardingScreen() {
         dailyCalorieTarget: dct,
       };
 
-      await saveUserProfile(user.uid, profile);
+      await saveUserProfile(userId, profile);
+      setUserId(userId);
       setProfile(profile);
 
-      // Navigate to tabs home
       router.replace('/(tabs)');
     } catch (err: any) {
       const msg = err?.message ?? '未知错误';
-      Alert.alert(isLogin ? '登录失败' : '注册失败', msg);
+      Alert.alert('保存失败', msg);
     } finally {
       setLoading(false);
     }
@@ -155,50 +141,7 @@ export default function OnboardingScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.title}>FitPlan</Text>
-        <Text style={styles.subtitle}>{isLogin ? '登录您的账户' : '创建您的健身档案'}</Text>
-
-        {/* Auth toggle */}
-        <View style={styles.toggleRow}>
-          <TouchableOpacity
-            style={[styles.toggleBtn, !isLogin && styles.toggleBtnActive]}
-            onPress={() => setIsLogin(false)}
-          >
-            <Text style={[styles.toggleText, !isLogin && styles.toggleTextActive]}>注册</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.toggleBtn, isLogin && styles.toggleBtnActive]}
-            onPress={() => setIsLogin(true)}
-          >
-            <Text style={[styles.toggleText, isLogin && styles.toggleTextActive]}>登录</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Email & Password */}
-        <View style={styles.fieldGroup}>
-          <Text style={styles.label}>邮箱</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="example@email.com"
-            placeholderTextColor="#aaa"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-        </View>
-
-        <View style={styles.fieldGroup}>
-          <Text style={styles.label}>密码</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="至少6位"
-            placeholderTextColor="#aaa"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-        </View>
+        <Text style={styles.subtitle}>创建您的健身档案</Text>
 
         {/* Gender */}
         <View style={styles.fieldGroup}>
@@ -320,7 +263,7 @@ export default function OnboardingScreen() {
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.submitText}>{isLogin ? '登录' : '开始计划'}</Text>
+            <Text style={styles.submitText}>开始计划</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
@@ -346,30 +289,6 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     marginBottom: 24,
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    marginBottom: 24,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 12,
-    padding: 4,
-  },
-  toggleBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  toggleBtnActive: {
-    backgroundColor: '#4CAF50',
-  },
-  toggleText: {
-    fontSize: 15,
-    color: '#888',
-    fontWeight: '500',
-  },
-  toggleTextActive: {
-    color: '#fff',
   },
   fieldGroup: {
     marginBottom: 16,
