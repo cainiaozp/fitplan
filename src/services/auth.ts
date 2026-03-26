@@ -1,19 +1,39 @@
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  User,
-} from 'firebase/auth';
-import { auth } from './firebase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const registerWithEmail = (email: string, password: string) =>
-  createUserWithEmailAndPassword(auth, email, password);
+const USER_ID_KEY = '@fitplan_user_id';
 
-export const loginWithEmail = (email: string, password: string) =>
-  signInWithEmailAndPassword(auth, email, password);
+/** Generate a random local user ID */
+export const generateLocalUserId = (): string => {
+  return 'user_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+};
 
-export const logout = () => signOut(auth);
+/** Get the stored local user ID */
+export const getLocalUserId = async (): Promise<string | null> => {
+  return AsyncStorage.getItem(USER_ID_KEY);
+};
 
-export const onAuthChange = (callback: (user: User | null) => void) =>
-  onAuthStateChanged(auth, callback);
+/** Set the local user ID (call after registration/setup) */
+export const setLocalUserId = async (userId: string): Promise<void> => {
+  await AsyncStorage.setItem(USER_ID_KEY, userId);
+};
+
+/** Clear the local user ID (logout / reset) */
+export const clearLocalUserId = async (): Promise<void> => {
+  await AsyncStorage.removeItem(USER_ID_KEY);
+};
+
+/**
+ * Simple auth state that mirrors Firebase onAuthChange pattern.
+ * Passes the local userId as the "user" — null if no profile is stored.
+ */
+export const onAuthChange = async (
+  callback: (userId: string | null) => void
+): Promise<() => void> => {
+  // Read once immediately
+  const userId = await getLocalUserId();
+  callback(userId);
+
+  // No real-time listener needed for local storage — callback fires once.
+  // Return a no-op unsubscribe for API compatibility.
+  return () => {};
+};
