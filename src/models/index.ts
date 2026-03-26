@@ -85,3 +85,8 @@ export interface NotificationSettings {
   exercise: { enabled: boolean; time: string };
   dailySummary: { enabled: boolean; time: string };
 }
+
+// Local user (replaces Firebase User)
+export interface LocalUser {
+  userId: string;
+}
