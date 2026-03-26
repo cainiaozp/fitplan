@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "FitPlan",
+    "slug": "fitplan",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "android": {
+      "package": "com.fitplan.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "ios": {
+      "bundleIdentifier": "com.fitplan.app",
+      "supportsTablet": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#4CAF50"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b1664138-48b5-486d-82a7-af48350d7ec3"
+      }
+    },
+    "owner": "pu_zhao"
+  }
+}
