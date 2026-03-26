@@ -1,12 +1,17 @@
-import * as FileSystem from 'expo-file-system';
+import {
+  documentDirectory,
+  makeDirectoryAsync,
+  getInfoAsync,
+  copyAsync,
+} from 'expo-file-system/legacy';
 
-const PHOTOS_DIR = FileSystem.documentDirectory + 'photos/';
+const PHOTOS_DIR = documentDirectory + 'photos/';
 
 /** Ensure photos directory exists */
 const ensureDir = async () => {
-  const info = await FileSystem.getInfoAsync(PHOTOS_DIR);
+  const info = await getInfoAsync(PHOTOS_DIR);
   if (!info.exists) {
-    await FileSystem.makeDirectoryAsync(PHOTOS_DIR, { intermediates: true });
+    await makeDirectoryAsync(PHOTOS_DIR, { intermediates: true });
   }
 };
 
@@ -22,6 +27,6 @@ export const uploadFoodPhoto = async (
   await ensureDir();
   const filename = `${uid}_${date}_${Math.random().toString(36).slice(2)}.jpg`;
   const dest = PHOTOS_DIR + filename;
-  await FileSystem.copyAsync({ from: photoUri, to: dest });
+  await copyAsync({ from: photoUri, to: dest });
   return dest;
 };
