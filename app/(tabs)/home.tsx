@@ -231,17 +231,20 @@ export default function HomeScreen() {
           setExercises(plan.exercises ?? []);
           setTotalConsumed(plan.totalCaloriesConsumed ?? 0);
         } else {
+          // No plan yet — show placeholder
           setCompleted({ breakfast: false, lunch: false, dinner: false, snack: false, exercises: false });
           setMeals([]);
           setExercises([]);
           setTotalConsumed(0);
         }
 
+        // Load last weight
         const records = await getWeightRecords(uid, 1);
         if (records.length > 0) {
           setLastWeight(records[0].weight);
         }
       } catch {
+        // Offline or error — show placeholder, don't crash
         setCompleted({ breakfast: false, lunch: false, dinner: false, snack: false, exercises: false });
         setMeals([]);
         setExercises([]);
@@ -342,6 +345,7 @@ export default function HomeScreen() {
     }
   };
 
+  // Build exercise summary text
   const exerciseSummary = (() => {
     if (exercises.length === 0) return '今日暂无运动计划';
     const cardio = exercises.filter((e) => e.type === 'cardio');
@@ -361,6 +365,7 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1 }}>
+      {/* Network Banner */}
       <NetworkBanner isConnected={isConnected} />
 
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -442,6 +447,7 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>快捷操作</Text>
         </View>
         <View style={styles.actionsRow}>
+          {/* Quick Photo */}
           <TouchableOpacity
             style={styles.actionBtn}
             onPress={() => router.push('/(tabs)/meals')}
@@ -452,6 +458,7 @@ export default function HomeScreen() {
             <Text style={styles.actionSubLabel}>记录饮食</Text>
           </TouchableOpacity>
 
+          {/* Weight Entry */}
           <TouchableOpacity
             style={styles.actionBtn}
             onPress={() => setWeightModalVisible(true)}
