@@ -1,24 +1,25 @@
 import { Stack } from 'expo-router';
-import { onAuthChange } from '../src/services/auth';
 import { useEffect } from 'react';
 import { useUserStore } from '../src/store/useUserStore';
-import { ActivityIndicator, View } from 'react-native';
+import { getLocalUserId } from '../src/services/auth';
+import { getUserProfile } from '../src/services/firestore';
 
 export default function RootLayout() {
-  const { setProfile } = useUserStore();
+  const { setUserId, setProfile } = useUserStore();
 
   useEffect(() => {
-    const unsubscribe = onAuthChange(async (user) => {
-      if (user) {
-        const { getUserProfile } = await import('../src/services/firestore');
-        const profile = await getUserProfile(user.uid);
+    const loadProfile = async () => {
+      const userId = await getLocalUserId();
+      if (userId) {
+        setUserId(userId);
+        const profile = await getUserProfile(userId);
         if (profile) {
           setProfile(profile);
         }
       }
-    });
-    return unsubscribe;
-  }, [setProfile]);
+    };
+    loadProfile();
+  }, [setUserId, setProfile]);
 
   return <Stack screenOptions={{ headerShown: false }} />;
 }
