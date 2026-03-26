@@ -57,7 +57,8 @@ export const addMeal = async (uid: string, date: string, meal: Meal): Promise<vo
 };
 
 export const getMeals = async (uid: string, date: string): Promise<Meal[]> => {
-  return jsonGet<Meal[]>(key(uid, 'meals', date)) ?? [];
+  const result: Meal[] | null = await jsonGet<Meal[]>(key(uid, 'meals', date));
+  return result ?? [];
 };
 
 export const subscribeMeals = (
