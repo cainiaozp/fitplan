@@ -6,21 +6,20 @@ on:
   workflow_dispatch:
     inputs:
       profile:
-        description: 'Build profile'
+        description: "Build profile"
         required: true
-        default: 'preview'
+        default: "preview"
         type: choice
         options:
           - preview
           - production
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   android:
     name: Build Android (EAS)
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,7 +31,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: Setup EAS
         uses: expo/expo-github-action@v8
@@ -44,6 +43,6 @@ jobs:
         run: npm install -g eas-cli
 
       - name: EAS Build
-        run: eas build --platform android --profile ${{ inputs.profile || 'preview' }} --non-interactive
+        run: eas build --platform android --profile "${{ inputs.profile || 'preview' }}" --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
