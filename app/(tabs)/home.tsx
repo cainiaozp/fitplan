@@ -16,8 +16,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, { Circle, G } from 'react-native-svg';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { auth } from '../../src/services/firebase';
-
 import { useUserStore } from '../../src/store/useUserStore';
 import { useMealStore } from '../../src/store/useMealStore';
 import { useExerciseStore } from '../../src/store/useExerciseStore';
@@ -174,7 +172,7 @@ export default function HomeScreen() {
   const networkState = useNetworkState();
   const isConnected = networkState.isConnected ?? null;
 
-  const { profile } = useUserStore();
+  const { userId, profile } = useUserStore();
   const { meals, setMeals, todayCalories, updateCalories } = useMealStore();
   const { exercises, setExercises, completeExercises } = useExerciseStore();
 
@@ -219,8 +217,8 @@ export default function HomeScreen() {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const uid = auth.currentUser?.uid;
-      if (!uid) {
+      const uid = userId;
+      if (!userId) {
         setLoading(false);
         return;
       }
@@ -233,20 +231,17 @@ export default function HomeScreen() {
           setExercises(plan.exercises ?? []);
           setTotalConsumed(plan.totalCaloriesConsumed ?? 0);
         } else {
-          // No plan yet — show placeholder
           setCompleted({ breakfast: false, lunch: false, dinner: false, snack: false, exercises: false });
           setMeals([]);
           setExercises([]);
           setTotalConsumed(0);
         }
 
-        // Load last weight
         const records = await getWeightRecords(uid, 1);
         if (records.length > 0) {
           setLastWeight(records[0].weight);
         }
       } catch {
-        // Offline or error — show placeholder, don't crash
         setCompleted({ breakfast: false, lunch: false, dinner: false, snack: false, exercises: false });
         setMeals([]);
         setExercises([]);
@@ -261,8 +256,8 @@ export default function HomeScreen() {
 
   // Subscribe to real-time updates
   useEffect(() => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
+    const uid = userId;
+    if (!userId) return;
     const unsubscribe = subscribeDailyPlan(uid, today, (plan) => {
       if (plan) {
         setCompleted(plan.completed);
@@ -282,8 +277,8 @@ export default function HomeScreen() {
 
   const toggleMeal = useCallback(
     async (type: MealType) => {
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
+      const uid = userId;
+      if (!userId) return;
       const newCompleted = { ...completed, [type]: !completed[type] };
       setCompleted(newCompleted);
       try {
@@ -306,8 +301,8 @@ export default function HomeScreen() {
   );
 
   const toggleExercise = useCallback(async () => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
+    const uid = userId;
+    if (!userId) return;
     const newCompleted = { ...completed, exercises: !completed.exercises };
     setCompleted(newCompleted);
     completeExercises();
@@ -329,8 +324,8 @@ export default function HomeScreen() {
   }, [completed, today, totalConsumed, completeExercises]);
 
   const handleWeightSubmit = async () => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
+    const uid = userId;
+    if (!userId) return;
     const w = parseFloat(weightInput);
     if (isNaN(w) || w <= 0) {
       Alert.alert('错误', '请输入有效体重');
@@ -347,7 +342,6 @@ export default function HomeScreen() {
     }
   };
 
-  // Build exercise summary text
   const exerciseSummary = (() => {
     if (exercises.length === 0) return '今日暂无运动计划';
     const cardio = exercises.filter((e) => e.type === 'cardio');
@@ -367,7 +361,6 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Network Banner */}
       <NetworkBanner isConnected={isConnected} />
 
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -449,7 +442,6 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>快捷操作</Text>
         </View>
         <View style={styles.actionsRow}>
-          {/* Quick Photo */}
           <TouchableOpacity
             style={styles.actionBtn}
             onPress={() => router.push('/(tabs)/meals')}
@@ -460,7 +452,6 @@ export default function HomeScreen() {
             <Text style={styles.actionSubLabel}>记录饮食</Text>
           </TouchableOpacity>
 
-          {/* Weight Entry */}
           <TouchableOpacity
             style={styles.actionBtn}
             onPress={() => setWeightModalVisible(true)}
