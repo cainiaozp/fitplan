@@ -20,7 +20,7 @@ export const uploadFoodPhoto = async (
   photoUri: string
 ): Promise<string> => {
   await ensureDir();
-  const filename = \`\${uid}_\${date}_\${Math.random().toString(36).slice(2)}.jpg\`;
+  const filename = `${uid}_${date}_${Math.random().toString(36).slice(2)}.jpg`;
   const dest = PHOTOS_DIR + filename;
   await FileSystem.copyAsync({ from: photoUri, to: dest });
   return dest;
